@@ -152,3 +152,11 @@
     @apply bg-background text-foreground;
   }
 }
+
+.marker {
+  background-image: url('/green_marker.png');
+  background-size: cover;
+  width: calc(9rem / 4);
+  height: calc(13rem / 4);
+  cursor: pointer;
+}
