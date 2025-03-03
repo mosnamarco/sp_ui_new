@@ -82,7 +82,7 @@ export default function Home() {
         </div>
       </div>
 
-      <footer className="p-2 text-xs text-center border-t border-gray-300 text-gray-600">
+      <footer className="p-2 bg-white text-xs text-center border-t border-gray-300 text-gray-600">
         © 2025 Ateneo De Naga University
       </footer>
     </div>
