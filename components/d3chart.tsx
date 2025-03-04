@@ -8,7 +8,7 @@ interface Data {
   Value: number;
 }
 
-const D3Component: React.FC = () => {
+export default function D3Component() {
   const chartRef = useRef<HTMLDivElement | null>(null);
   const [dimensions, setDimensions] = useState<{ width: number; height: number }>({
     width: 600,
@@ -86,5 +86,3 @@ const D3Component: React.FC = () => {
 
   return <div ref={chartRef} className="w-full h-[400px]" />;
 };
-
-export default D3Component;
