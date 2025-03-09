@@ -18,6 +18,10 @@ export default function MapBox() {
         style: "mapbox://styles/mapbox/streets-v11",
         center: [123.509, 13.4337], // Buhi station 
         zoom: 10,
+        maxBounds: [
+          [114.0952, 4.2158], // Southwest coordinates of Philippines
+          [126.8072, 21.3217], // Northeast coordinates of Philippines
+        ],
       });
 
       mapStore.setMap(mapRef.current);
@@ -35,7 +39,8 @@ export default function MapBox() {
     <div
       id="map-container"
       ref={mapContainerRef}
-      className="h-[700px] w-full border rounded-lg"
+      className="h-full w-full border rounded-lg shadow-sm"
+      style={{ height: "100%" }}
     />
   );
 }

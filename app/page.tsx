@@ -88,15 +88,15 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col gap-4 bg-slate-100">
+    <div className="flex flex-col h-screen bg-slate-100">
       <nav className="p-2 w-full border border-b-gray-300 bg-white">
-        <div className="max-w-screen-lg m-auto flex justify-between items-center">
+        <div className="max-w-screen-2xl m-auto flex justify-between items-center">
           <span className="font-bold text-blue-500 text-xl">FlowCast</span>
           <Info className="text-blue-500" />
         </div>
       </nav>
 
-      <div className="w-full max-w-screen-lg mx-auto flex flex-col gap-4 h-full">
+      <div className="w-full max-w-screen-2xl mx-auto flex flex-col gap-4 flex-1 px-4 py-4 overflow-hidden">
         {/* map */}
         <div className="p-2 bg-orange-200 border-l-4 border-orange-300 rounded-lg text-orange-600">
           <h2 className="text-lg">
@@ -107,123 +107,130 @@ export default function Home() {
           </h2>
         </div>
 
-        <div className="h-full w-full">
-          <MapBox />
-        </div>
-
-        <div className="flex gap-2 justify-between">
-          <div className="flex flex-col gap-2 flex-1">
-            {/* Predicition date */}
-            <div className="flex flex-col gap-2 bg-white rounded-lg p-4">
-              <p>
-                <span className="font-bold text-lg">
-                  Select prediction date
-                </span>
-              </p>
-              <input
-                type="date"
-                className="p-2 border rounded-md hover:cursor-pointer"
-                min={"2020-06-14"}
-                max={"2024-06-14"}
-                defaultValue={inputDate}
-                onChange={(e) => {
-                  console.log(e.currentTarget.value)
-                  setInputDate(e.currentTarget.value);
-                }}
-              />
-              <input
-                className="p-2 border rounded-md hover:cursor-pointer"
-                type="time"
-                step={3600}
-                defaultValue={inputTime}
-                onChange={(e) => {
-                  console.log(e.currentTarget.value)
-                  let hour = e.currentTarget.value.split(":")[0];
-                  setInputTime(hour);
-                }}
-              />
-            </div>
-
-            {/* Station selector */}
-            <div className="bg-white p-4 rounded-lg h-fit">
-              <h2 className="text-lg font-bold mb-2">Station name</h2>
-              {["buhi", "sipocot", "quinali", "ombao"].map((val) => {
-                return (
-                  <div className="flex gap-2" key={val}>
-                    <input
-                      type="radio"
-                      id={val}
-                      checked={sensor === val}
-                      onChange={() => {
-                        setSensor(val);
-                      }}
-                    />
-                    <label htmlFor={val}>
-                      {val.charAt(0).toUpperCase() + val.slice(1)}
-                    </label>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Model selector */}
-            <div className="bg-white p-4 rounded-lg h-fit">
-              <h2 className="text-lg font-bold mb-2">ML Model</h2>
-              {["svr", "rfr", "lstm"].map((val) => {
-                return (
-                  <div className="flex gap-2" key={val}>
-                    <input
-                      type="radio"
-                      id={val}
-                      checked={model === val}
-                      onChange={() => {
-                        setModel(val);
-                      }}
-                    />
-                    <label htmlFor={val}>
-                      {val.charAt(0).toUpperCase() + val.slice(1)}
-                    </label>
-                  </div>
-                );
-              })}
-            </div>
+        {/* Main content area - Map on left, controls and graph on right */}
+        <div className="flex flex-row gap-4 flex-1 overflow-hidden">
+          {/* Left side - Map */}
+          <div className="w-3/5 relative">
+            <MapBox />
           </div>
 
-          {/* Sensor information */}
-          <div className="rounded-lg p-4 bg-white">
-            <div className="text-xl flex justify-between">
-              <span className="font-bold">
-                {sensor.charAt(0).toUpperCase() + sensor.slice(1)}
-              </span>
-              <span className="text-sm font-medium bg-blue-200 p-2 rounded-md text-blue-600">
-                Model: {model.toUpperCase()}
-              </span>
+          {/* Right side - Controls and Graph */}
+          <div className="w-2/5 flex flex-col gap-4 overflow-auto">
+            {/* Controls section */}
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+              <div className="grid grid-cols-3 gap-4">
+                {/* Predicition date */}
+                <div className="flex flex-col gap-2">
+                  <p className="font-bold">Select prediction date</p>
+                  <input
+                    type="date"
+                    className="p-2 border rounded-md hover:cursor-pointer"
+                    min={"2020-06-14"}
+                    max={"2024-06-14"}
+                    defaultValue={inputDate}
+                    onChange={(e) => {
+                      console.log(e.currentTarget.value);
+                      setInputDate(e.currentTarget.value);
+                    }}
+                  />
+                  <input
+                    className="p-2 border rounded-md hover:cursor-pointer"
+                    type="time"
+                    step={3600}
+                    defaultValue={inputTime}
+                    onChange={(e) => {
+                      console.log(e.currentTarget.value);
+                      let hour = e.currentTarget.value.split(":")[0];
+                      setInputTime(hour);
+                    }}
+                  />
+                </div>
+
+                {/* Station selector */}
+                <div className="flex flex-col gap-2">
+                  <h2 className="font-bold">Station name</h2>
+                  {["buhi", "sipocot", "quinali", "ombao"].map((val) => {
+                    return (
+                      <div className="flex gap-2" key={val}>
+                        <input
+                          type="radio"
+                          id={val}
+                          checked={sensor === val}
+                          onChange={() => {
+                            setSensor(val);
+                          }}
+                        />
+                        <label htmlFor={val}>
+                          {val.charAt(0).toUpperCase() + val.slice(1)}
+                        </label>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Model selector */}
+                <div className="flex flex-col gap-2">
+                  <h2 className="font-bold">ML Model</h2>
+                  {["svr", "rfr", "lstm"].map((val) => {
+                    return (
+                      <div className="flex gap-2" key={val}>
+                        <input
+                          type="radio"
+                          id={val}
+                          checked={model === val}
+                          onChange={() => {
+                            setModel(val);
+                          }}
+                        />
+                        <label htmlFor={val}>
+                          {val.charAt(0).toUpperCase() + val.slice(1)}
+                        </label>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
-            <div>
-              <p>
-                From{" "}
-                <span className="font-medium">
-                  {new Date(inputDate).toLocaleDateString(undefined, {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  }) +
-                    " " +
-                    new Date(
-                      `${inputDate}T${inputTime}:00`
-                    ).toLocaleTimeString(undefined, {hour: "numeric", hour12: true})}
+
+            {/* Graph section */}
+            <div className="rounded-lg p-4 bg-white flex-1 shadow-sm">
+              <div className="text-xl flex justify-between mb-2">
+                <span className="font-bold">
+                  {sensor.charAt(0).toUpperCase() + sensor.slice(1)}
                 </span>
-                <br />
-                to the next 24 hours
-              </p>
-              <D3Component />
+                <span className="text-sm font-medium bg-blue-200 p-2 rounded-md text-blue-600">
+                  Model: {model.toUpperCase()}
+                </span>
+              </div>
+              <div>
+                <p className="mb-2">
+                  From{" "}
+                  <span className="font-medium">
+                    {new Date(inputDate).toLocaleDateString(undefined, {
+                      weekday: "long",
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    }) +
+                      " " +
+                      new Date(
+                        `${inputDate}T${inputTime}:00`
+                      ).toLocaleTimeString(undefined, {
+                        hour: "numeric",
+                        hour12: true,
+                      })}
+                  </span>
+                  <br />
+                  to the next 24 hours
+                </p>
+                <D3Component />
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <footer className="p-2 bg-white text-xs text-center border-t border-gray-300 text-gray-600">
+      <footer className="p-2 bg-white text-xs text-center border-t border-gray-300 text-gray-600 mt-auto">
         © 2025 Ateneo De Naga University
       </footer>
     </div>

@@ -84,5 +84,5 @@ export default function D3Component() {
     });
   }, [dimensions]);
 
-  return <div ref={chartRef} className="w-full h-[400px]" />;
+  return <div ref={chartRef} className="w-full h-full" style={{ height: "100%" }} />;
 };
