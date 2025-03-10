@@ -6,9 +6,12 @@ import MapBox from "@/components/mapbox";
 import D3Component from "@/components/d3chart";
 import { useMapStore } from "@/store/map-store";
 import mapboxgl from "mapbox-gl";
+import { getPrediction } from "./actions";
+import { usePredictionStore } from "@/store/prediction-store";
 
 export default function Home() {
   const mapStore = useMapStore((state) => state);
+  const predictionStore = usePredictionStore((state) => state);
   const [isClient, setIsClient] = useState(false);
   const [sensor, setSensor] = useState("buhi");
   const [model, setModel] = useState("svr");
@@ -83,6 +86,13 @@ export default function Home() {
     }
   }, [mapStore]);
 
+  const handleInputChange = () => {
+    getPrediction(inputDate, inputTime, model, sensor).then((res) => {
+      console.log(res);
+      predictionStore.setPredictionData(res);
+    });
+  };
+
   if (!isClient) {
     return null;
   }
@@ -117,80 +127,127 @@ export default function Home() {
           {/* Right side - Controls and Graph */}
           <div className="w-2/5 flex flex-col gap-4 overflow-auto">
             {/* Controls section */}
-            <div className="bg-white rounded-lg p-4 shadow-sm">
-              <div className="grid grid-cols-3 gap-4">
-                {/* Predicition date */}
-                <div className="flex flex-col gap-2">
-                  <p className="font-bold">Select prediction date</p>
-                  <input
-                    type="date"
-                    className="p-2 border rounded-md hover:cursor-pointer"
-                    min={"2020-06-14"}
-                    max={"2024-06-14"}
-                    defaultValue={inputDate}
-                    onChange={(e) => {
-                      console.log(e.currentTarget.value);
-                      setInputDate(e.currentTarget.value);
-                    }}
-                  />
-                  <input
-                    className="p-2 border rounded-md hover:cursor-pointer"
-                    type="time"
-                    step={3600}
-                    defaultValue={inputTime}
-                    onChange={(e) => {
-                      console.log(e.currentTarget.value);
-                      let hour = e.currentTarget.value.split(":")[0];
-                      setInputTime(hour);
-                    }}
-                  />
+            <div className="bg-white rounded-lg p-6 shadow-md border border-gray-100">
+              <h2 className="text-xl font-bold text-blue-600 mb-4">Prediction Controls</h2>
+              <div className="grid grid-cols-3 gap-6">
+                {/* Prediction date and time */}
+                <div className="flex flex-col gap-3">
+                  <p className="font-bold text-gray-700">Prediction Time</p>
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="predictionDate" className="text-sm text-gray-600">Date</label>
+                    <input
+                      id="predictionDate"
+                      type="date"
+                      className="p-2.5 border border-gray-300 rounded-md hover:cursor-pointer focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all"
+                      min={"2020-06-1"}
+                      max={"2024-12-11"}
+                      defaultValue={inputDate}
+                      onChange={(e) => {
+                        console.log(e.currentTarget.value);
+                        setInputDate(e.currentTarget.value);
+                        handleInputChange();
+                      }}
+                    />
+                    <label htmlFor="predictionTime" className="text-sm text-gray-600">Time</label>
+                    <input
+                      id="predictionTime"
+                      className="p-2.5 border border-gray-300 rounded-md hover:cursor-pointer focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all"
+                      type="time"
+                      step={3600}
+                      defaultValue={inputTime}
+                      onChange={(e) => {
+                        console.log(e.currentTarget.value);
+                        let hour = e.currentTarget.value.split(":")[0];
+                        setInputTime(hour);
+                        handleInputChange();
+                      }}
+                    />
+                  </div>
                 </div>
 
                 {/* Station selector */}
-                <div className="flex flex-col gap-2">
-                  <h2 className="font-bold">Station name</h2>
-                  {["buhi", "sipocot", "quinali", "ombao"].map((val) => {
-                    return (
-                      <div className="flex gap-2" key={val}>
-                        <input
-                          type="radio"
-                          id={val}
-                          checked={sensor === val}
-                          onChange={() => {
-                            setSensor(val);
-                          }}
-                        />
-                        <label htmlFor={val}>
-                          {val.charAt(0).toUpperCase() + val.slice(1)}
-                        </label>
-                      </div>
-                    );
-                  })}
+                <div className="flex flex-col gap-3">
+                  <h2 className="font-bold text-gray-700">Station</h2>
+                  <div className="bg-gray-50 p-3 rounded-md border border-gray-200 flex flex-col gap-2">
+                    {["buhi", "sipocot", "quinali", "ombao"].map((val) => {
+                      return (
+                        <div className="flex items-center gap-2 hover:bg-gray-100 p-1.5 rounded-md transition-colors" key={val}>
+                          <input
+                            type="radio"
+                            id={val}
+                            className="w-4 h-4 accent-blue-500"
+                            checked={sensor === val}
+                            onChange={() => {
+                              setSensor(val);
+                              handleInputChange();
+                            }}
+                          />
+                          <label htmlFor={val} className="cursor-pointer w-full">
+                            {val.charAt(0).toUpperCase() + val.slice(1)}
+                          </label>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {/* Model selector */}
-                <div className="flex flex-col gap-2">
-                  <h2 className="font-bold">ML Model</h2>
-                  {["svr", "rfr", "lstm"].map((val) => {
-                    return (
-                      <div className="flex gap-2" key={val}>
-                        <input
-                          type="radio"
-                          id={val}
-                          checked={model === val}
-                          onChange={() => {
-                            setModel(val);
-                          }}
-                        />
-                        <label htmlFor={val}>
-                          {val.charAt(0).toUpperCase() + val.slice(1)}
-                        </label>
-                      </div>
-                    );
-                  })}
+                <div className="flex flex-col gap-3">
+                  <h2 className="font-bold text-gray-700">ML Model</h2>
+                  <div className="bg-gray-50 p-3 rounded-md border border-gray-200 flex flex-col gap-2">
+                    {["svr", "rfr", "lstm"].map((val) => {
+                      return (
+                        <div className="flex items-center gap-2 hover:bg-gray-100 p-1.5 rounded-md transition-colors" key={val}>
+                          <input
+                            type="radio"
+                            id={val}
+                            className="w-4 h-4 accent-blue-500"
+                            checked={model === val}
+                            onChange={() => {
+                              setModel(val);
+                              handleInputChange();
+                            }}
+                          />
+                          <label htmlFor={val} className="cursor-pointer w-full">
+                            {val.toUpperCase()}
+                          </label>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Water Level Status Indicator */}
+            {predictionStore.getPredictionData() && (
+              <div className={`rounded-lg p-4 ${
+                Math.max(...predictionStore.getPredictionData()?.forecast.waterlevels || [0]) >= 3 
+                  ? "bg-red-100 border-l-4 border-red-500" 
+                  : "bg-green-100 border-l-4 border-green-500"
+              }`}>
+                <div className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${
+                    Math.max(...predictionStore.getPredictionData()?.forecast.waterlevels || [0]) >= 3
+                      ? "bg-red-500" 
+                      : "bg-green-500"
+                  }`}></div>
+                  <h3 className="font-bold">
+                    {Math.max(...predictionStore.getPredictionData()?.forecast.waterlevels || [0]) >= 3
+                      ? "Critical Water Level" 
+                      : "Safe Water Level"}
+                  </h3>
+                </div>
+                <p className="mt-1 text-sm">
+                  {Math.max(...predictionStore.getPredictionData()?.forecast.waterlevels || [0]) >= 3
+                    ? "Predicted water levels exceed the critical threshold of 3 meters." 
+                    : "Predicted water levels are below the critical threshold of 3 meters."}
+                </p>
+                <p className="mt-1 text-sm font-medium">
+                  Maximum predicted level: {Math.max(...predictionStore.getPredictionData()?.forecast.waterlevels || [0]).toFixed(2)} meters
+                </p>
+              </div>
+            )}
 
             {/* Graph section */}
             <div className="rounded-lg p-4 bg-white flex-1 shadow-sm">
@@ -203,26 +260,44 @@ export default function Home() {
                 </span>
               </div>
               <div>
-                <p className="mb-2">
-                  From{" "}
-                  <span className="font-medium">
-                    {new Date(inputDate).toLocaleDateString(undefined, {
-                      weekday: "long",
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    }) +
-                      " " +
-                      new Date(
-                        `${inputDate}T${inputTime}:00`
-                      ).toLocaleTimeString(undefined, {
-                        hour: "numeric",
-                        hour12: true,
-                      })}
-                  </span>
-                  <br />
-                  to the next 24 hours
-                </p>
+                <div className="mb-4 bg-gray-50 p-3 rounded-md border border-gray-200">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-1">Forecast Period</h4>
+                  <p className="text-sm">
+                    <span className="font-medium text-blue-600">
+                      {new Date(inputDate).toLocaleDateString(undefined, {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      }) +
+                        " at " +
+                        new Date(
+                          `${inputDate}T${inputTime}:00`
+                        ).toLocaleTimeString(undefined, {
+                          hour: "numeric",
+                          minute: "numeric",
+                          hour12: true,
+                        })}
+                    </span>
+                    {" "}
+                    <span className="text-gray-500">→</span>
+                    {" "}
+                    <span className="font-medium text-blue-600">
+                      {new Date(new Date(`${inputDate}T${inputTime}:00`).getTime() + 24 * 60 * 60 * 1000)
+                        .toLocaleDateString(undefined, {
+                          weekday: "long",
+                          month: "short",
+                          day: "numeric",
+                        }) +
+                        " at " +
+                        new Date(`${inputDate}T${inputTime}:00`).toLocaleTimeString(undefined, {
+                          hour: "numeric",
+                          minute: "numeric",
+                          hour12: true,
+                        })}
+                    </span>
+                  </p>
+                </div>
                 <D3Component />
               </div>
             </div>
