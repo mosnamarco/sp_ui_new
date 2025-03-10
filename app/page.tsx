@@ -16,6 +16,7 @@ export default function Home() {
   const [model, setModel] = useState("svr");
   const [inputDate, setInputDate] = useState("2024-06-14");
   const [inputTime, setInputTime] = useState("12:00");
+  const [client, setClient] = useState(false);
   const [sensorInfo, _] = useState([
     {
       station_id: 630365,
@@ -45,7 +46,7 @@ export default function Home() {
     },
     {
       station_id: "630364",
-      name: "Quinali",
+      name: "Bato",
       type: "rainfall, waterlevel",
       location: "Brgy. Divina Pastora, Bato, Camarines Sur",
       latitude: 13.35348,
@@ -72,28 +73,29 @@ export default function Home() {
   ]);
 
   useEffect(() => {
-    if (mapStore.getMap()) {
-      // todo: store this
-      sensorInfo.map((val) => {
-        const el = document.createElement("div");
-        el.className = "marker";
-        el.id = val.name;
+    if (typeof window === 'undefined' || !mapStore.getMap()) return;
+    
+    // Only run this code on the client side
+    sensorInfo.map((val) => {
+      const el = document.createElement("div");
+      el.className = "marker";
+      el.id = val.name;
 
-        new mapboxgl.Marker(el)
-          .setLngLat([val.longitude, val.latitude])
-          .addTo(mapStore.getMap()!)
-          .setPopup(
-            new mapboxgl.Popup({ offset: 25 }).setHTML(
+      new mapboxgl.Marker(el)
+        .setLngLat([val.longitude, val.latitude])
+        .addTo(mapStore.getMap()!)
+        .setPopup(
+          new mapboxgl.Popup({ offset: 25 }).setHTML(
+            `
+              <div style="padding: 10px; border-radius: 3em;">
+                <p style="font-weight: bold;">${val.name}</p>
+                <p id="${val.station_id}"></p>
+              </div>
               `
-                <div style="padding: 10px; border-radius: 3em;">
-                  <p style="font-weight: bold;">${val.name}</p>
-                  <p id="${val.station_id}"></p>
-                </div>
-                `
-            )
-          );
-      });
-    }
+          )
+        );
+    });
+    setClient(true);
   }, [mapStore]);
 
   useEffect(() => {
@@ -187,7 +189,7 @@ export default function Home() {
                 <div className="flex flex-col gap-3">
                   <h2 className="font-bold text-gray-700">Station</h2>
                   <div className="bg-gray-50 p-3 rounded-md border border-gray-200 flex flex-col gap-2">
-                    {["buhi", "sipocot", "quinali", "ombao"].map((val) => {
+                    {["buhi", "sipocot", "bato", "ombao"].map((val) => {
                       return (
                         <div
                           className="flex items-center gap-2 hover:bg-gray-100 p-1.5 rounded-md transition-colors"
