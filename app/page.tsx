@@ -18,6 +18,10 @@ export default function Home() {
   const [inputDate, setInputDate] = useState("2024-06-14");
   const [inputTime, setInputTime] = useState("12:00");
 
+  if (!isClient) {
+    return null;
+  }
+
   useEffect(() => {
     setIsClient(true);
     const sensorInfo = [
@@ -86,16 +90,13 @@ export default function Home() {
     }
   }, [mapStore]);
 
-  const handleInputChange = () => {
+  useEffect(() => {
     getPrediction(inputDate, inputTime, model, sensor).then((res) => {
       console.log(res);
       predictionStore.setPredictionData(res);
     });
-  };
 
-  if (!isClient) {
-    return null;
-  }
+  }, [inputDate, inputTime, model, sensor]);
 
   return (
     <div className="flex flex-col h-screen bg-slate-100">
@@ -113,7 +114,9 @@ export default function Home() {
             Note: Due to sensor limitations{" "}
             <span className="italic font-bold">(lack of real time data)</span>{" "}
             predictions{" "}
-            <span className="italic underline font-bold">are not live.</span>
+            <span className="italic underline font-bold">
+              are limited to previously recorded rainfall and water level data.
+            </span>
           </h2>
         </div>
 
@@ -128,13 +131,20 @@ export default function Home() {
           <div className="w-2/5 flex flex-col gap-4 overflow-auto">
             {/* Controls section */}
             <div className="bg-white rounded-lg p-6 shadow-md border border-gray-100">
-              <h2 className="text-xl font-bold text-blue-600 mb-4">Prediction Controls</h2>
+              <h2 className="text-xl font-bold text-blue-600 mb-4">
+                Prediction Controls
+              </h2>
               <div className="grid grid-cols-3 gap-6">
                 {/* Prediction date and time */}
                 <div className="flex flex-col gap-3">
                   <p className="font-bold text-gray-700">Prediction Time</p>
                   <div className="flex flex-col gap-2">
-                    <label htmlFor="predictionDate" className="text-sm text-gray-600">Date</label>
+                    <label
+                      htmlFor="predictionDate"
+                      className="text-sm text-gray-600"
+                    >
+                      Date
+                    </label>
                     <input
                       id="predictionDate"
                       type="date"
@@ -145,10 +155,14 @@ export default function Home() {
                       onChange={(e) => {
                         console.log(e.currentTarget.value);
                         setInputDate(e.currentTarget.value);
-                        handleInputChange();
                       }}
                     />
-                    <label htmlFor="predictionTime" className="text-sm text-gray-600">Time</label>
+                    <label
+                      htmlFor="predictionTime"
+                      className="text-sm text-gray-600"
+                    >
+                      Time
+                    </label>
                     <input
                       id="predictionTime"
                       className="p-2.5 border border-gray-300 rounded-md hover:cursor-pointer focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all"
@@ -159,7 +173,6 @@ export default function Home() {
                         console.log(e.currentTarget.value);
                         let hour = e.currentTarget.value.split(":")[0];
                         setInputTime(hour);
-                        handleInputChange();
                       }}
                     />
                   </div>
@@ -171,7 +184,10 @@ export default function Home() {
                   <div className="bg-gray-50 p-3 rounded-md border border-gray-200 flex flex-col gap-2">
                     {["buhi", "sipocot", "quinali", "ombao"].map((val) => {
                       return (
-                        <div className="flex items-center gap-2 hover:bg-gray-100 p-1.5 rounded-md transition-colors" key={val}>
+                        <div
+                          className="flex items-center gap-2 hover:bg-gray-100 p-1.5 rounded-md transition-colors"
+                          key={val}
+                        >
                           <input
                             type="radio"
                             id={val}
@@ -179,10 +195,12 @@ export default function Home() {
                             checked={sensor === val}
                             onChange={() => {
                               setSensor(val);
-                              handleInputChange();
                             }}
                           />
-                          <label htmlFor={val} className="cursor-pointer w-full">
+                          <label
+                            htmlFor={val}
+                            className="cursor-pointer w-full"
+                          >
                             {val.charAt(0).toUpperCase() + val.slice(1)}
                           </label>
                         </div>
@@ -197,7 +215,10 @@ export default function Home() {
                   <div className="bg-gray-50 p-3 rounded-md border border-gray-200 flex flex-col gap-2">
                     {["svr", "rfr", "lstm"].map((val) => {
                       return (
-                        <div className="flex items-center gap-2 hover:bg-gray-100 p-1.5 rounded-md transition-colors" key={val}>
+                        <div
+                          className="flex items-center gap-2 hover:bg-gray-100 p-1.5 rounded-md transition-colors"
+                          key={val}
+                        >
                           <input
                             type="radio"
                             id={val}
@@ -205,10 +226,12 @@ export default function Home() {
                             checked={model === val}
                             onChange={() => {
                               setModel(val);
-                              handleInputChange();
                             }}
                           />
-                          <label htmlFor={val} className="cursor-pointer w-full">
+                          <label
+                            htmlFor={val}
+                            className="cursor-pointer w-full"
+                          >
                             {val.toUpperCase()}
                           </label>
                         </div>
@@ -221,30 +244,51 @@ export default function Home() {
 
             {/* Water Level Status Indicator */}
             {predictionStore.getPredictionData() && (
-              <div className={`rounded-lg p-4 ${
-                Math.max(...predictionStore.getPredictionData()?.forecast.waterlevels || [0]) >= 3 
-                  ? "bg-red-100 border-l-4 border-red-500" 
-                  : "bg-green-100 border-l-4 border-green-500"
-              }`}>
+              <div
+                className={`rounded-lg p-4 ${
+                  Math.max(
+                    ...(predictionStore.getPredictionData()?.forecast
+                      .waterlevels || [0])
+                  ) >= 3
+                    ? "bg-red-100 border-l-4 border-red-500"
+                    : "bg-green-100 border-l-4 border-green-500"
+                }`}
+              >
                 <div className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${
-                    Math.max(...predictionStore.getPredictionData()?.forecast.waterlevels || [0]) >= 3
-                      ? "bg-red-500" 
-                      : "bg-green-500"
-                  }`}></div>
+                  <div
+                    className={`w-3 h-3 rounded-full ${
+                      Math.max(
+                        ...(predictionStore.getPredictionData()?.forecast
+                          .waterlevels || [0])
+                      ) >= 3
+                        ? "bg-red-500"
+                        : "bg-green-500"
+                    }`}
+                  ></div>
                   <h3 className="font-bold">
-                    {Math.max(...predictionStore.getPredictionData()?.forecast.waterlevels || [0]) >= 3
-                      ? "Critical Water Level" 
+                    {Math.max(
+                      ...(predictionStore.getPredictionData()?.forecast
+                        .waterlevels || [0])
+                    ) >= 3
+                      ? "Critical Water Level"
                       : "Safe Water Level"}
                   </h3>
                 </div>
                 <p className="mt-1 text-sm">
-                  {Math.max(...predictionStore.getPredictionData()?.forecast.waterlevels || [0]) >= 3
-                    ? "Predicted water levels exceed the critical threshold of 3 meters." 
+                  {Math.max(
+                    ...(predictionStore.getPredictionData()?.forecast
+                      .waterlevels || [0])
+                  ) >= 3
+                    ? "Predicted water levels exceed the critical threshold of 3 meters."
                     : "Predicted water levels are below the critical threshold of 3 meters."}
                 </p>
                 <p className="mt-1 text-sm font-medium">
-                  Maximum predicted level: {Math.max(...predictionStore.getPredictionData()?.forecast.waterlevels || [0]).toFixed(2)} meters
+                  Maximum predicted level:{" "}
+                  {Math.max(
+                    ...(predictionStore.getPredictionData()?.forecast
+                      .waterlevels || [0])
+                  ).toFixed(2)}{" "}
+                  meters
                 </p>
               </div>
             )}
@@ -261,7 +305,9 @@ export default function Home() {
               </div>
               <div>
                 <div className="mb-4 bg-gray-50 p-3 rounded-md border border-gray-200">
-                  <h4 className="text-sm font-semibold text-gray-700 mb-1">Forecast Period</h4>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-1">
+                    Forecast Period
+                  </h4>
                   <p className="text-sm">
                     <span className="font-medium text-blue-600">
                       {new Date(inputDate).toLocaleDateString(undefined, {
@@ -278,19 +324,21 @@ export default function Home() {
                           minute: "numeric",
                           hour12: true,
                         })}
-                    </span>
-                    {" "}
-                    <span className="text-gray-500">→</span>
-                    {" "}
+                    </span>{" "}
+                    <span className="text-gray-500">→</span>{" "}
                     <span className="font-medium text-blue-600">
-                      {new Date(new Date(`${inputDate}T${inputTime}:00`).getTime() + 24 * 60 * 60 * 1000)
-                        .toLocaleDateString(undefined, {
-                          weekday: "long",
-                          month: "short",
-                          day: "numeric",
-                        }) +
+                      {new Date(
+                        new Date(`${inputDate}T${inputTime}:00`).getTime() +
+                          24 * 60 * 60 * 1000
+                      ).toLocaleDateString(undefined, {
+                        weekday: "long",
+                        month: "short",
+                        day: "numeric",
+                      }) +
                         " at " +
-                        new Date(`${inputDate}T${inputTime}:00`).toLocaleTimeString(undefined, {
+                        new Date(
+                          `${inputDate}T${inputTime}:00`
+                        ).toLocaleTimeString(undefined, {
                           hour: "numeric",
                           minute: "numeric",
                           hour12: true,
