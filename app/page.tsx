@@ -12,60 +12,66 @@ import { usePredictionStore } from "@/store/prediction-store";
 export default function Home() {
   const mapStore = useMapStore((state) => state);
   const predictionStore = usePredictionStore((state) => state);
-  const [isClient, setIsClient] = useState(false);
   const [sensor, setSensor] = useState("buhi");
   const [model, setModel] = useState("svr");
   const [inputDate, setInputDate] = useState("2024-06-14");
   const [inputTime, setInputTime] = useState("12:00");
-
-  if (!isClient) {
-    return null;
-  }
+  const [sensorInfo, _] = useState([
+    {
+      station_id: 630365,
+      name: "Buhi",
+      type: "rainfall, waterlevel",
+      location: "Brgy. Salvacion, Buhi, Camarines Sur",
+      latitude: 13.4337,
+      longitude: 123.509,
+      elevation: 86,
+      alert: 1.6,
+      alarm: 2.4,
+      critical: 4,
+      available_params: "rainfall,waterlevel",
+    },
+    {
+      station_id: 630371,
+      name: "Ombao",
+      type: "rainfall, waterlevel",
+      location: "Brgy. Ombao-Polpog, Bula, Camarines Sur",
+      latitude: 13.47482,
+      longitude: 123.2413,
+      elevation: 10,
+      alert: 3.6,
+      alarm: 5.4,
+      critical: 9,
+      available_params: "rainfall,waterlevel",
+    },
+    {
+      station_id: "630364",
+      name: "Quinali",
+      type: "rainfall, waterlevel",
+      location: "Brgy. Divina Pastora, Bato, Camarines Sur",
+      latitude: 13.35348,
+      longitude: 123.3645,
+      elevation: 3,
+      alert: 1.6,
+      alarm: 2.4,
+      critical: 4,
+      available_params: "rainfall,waterlevel",
+    },
+    {
+      station_id: 630382,
+      name: "Sipocot",
+      type: "rainfall, waterlevel",
+      location: "Brgy. North Centro, Sipocot, Camarines Sur",
+      latitude: 13.77142,
+      longitude: 122.975,
+      elevation: 13,
+      alert: 4.2,
+      alarm: 6.3,
+      critical: 10.5,
+      available_params: "rainfall,waterlevel",
+    },
+  ]);
 
   useEffect(() => {
-    setIsClient(true);
-    const sensorInfo = [
-      {
-        station_id: 630365,
-        name: "Buhi",
-        type: "rainfall, waterlevel",
-        location: "Brgy. Salvacion, Buhi, Camarines Sur",
-        latitude: 13.4337,
-        longitude: 123.509,
-        elevation: 86,
-        alert: 1.6,
-        alarm: 2.4,
-        critical: 4,
-        available_params: "rainfall,waterlevel",
-      },
-      {
-        station_id: 630371,
-        name: "Ombao",
-        type: "rainfall, waterlevel",
-        location: "Brgy. Ombao-Polpog, Bula, Camarines Sur",
-        latitude: 13.47482,
-        longitude: 123.2413,
-        elevation: 10,
-        alert: 3.6,
-        alarm: 5.4,
-        critical: 9,
-        available_params: "rainfall,waterlevel",
-      },
-      {
-        station_id: 630382,
-        name: "Sipocot",
-        type: "rainfall, waterlevel",
-        location: "Brgy. North Centro, Sipocot, Camarines Sur",
-        latitude: 13.77142,
-        longitude: 122.975,
-        elevation: 13,
-        alert: 4.2,
-        alarm: 6.3,
-        critical: 10.5,
-        available_params: "rainfall,waterlevel",
-      },
-    ];
-
     if (mapStore.getMap()) {
       // todo: store this
       sensorInfo.map((val) => {
@@ -95,7 +101,6 @@ export default function Home() {
       console.log(res);
       predictionStore.setPredictionData(res);
     });
-
   }, [inputDate, inputTime, model, sensor]);
 
   return (
@@ -244,43 +249,91 @@ export default function Home() {
 
             {/* Water Level Status Indicator */}
             {predictionStore.getPredictionData() && (
-              <div
-                className={`rounded-lg p-4 ${
-                  Math.max(
+              <div className={`rounded-lg p-4 ${
+                (() => {
+                  const maxWaterLevel = Math.max(
                     ...(predictionStore.getPredictionData()?.forecast
                       .waterlevels || [0])
-                  ) >= 3
-                    ? "bg-red-100 border-l-4 border-red-500"
-                    : "bg-green-100 border-l-4 border-green-500"
-                }`}
-              >
+                  );
+                  const currentSensorInfo = sensorInfo.find(
+                    (s) => s.name.toLowerCase() === sensor.toLowerCase()
+                  );
+                  
+                  if (!currentSensorInfo) return "bg-blue-100 border-l-4 border-blue-500";
+                  
+                  if (maxWaterLevel >= currentSensorInfo.critical) {
+                    return "bg-red-100 border-l-4 border-red-500";
+                  } else if (maxWaterLevel >= currentSensorInfo.alert) {
+                    return "bg-yellow-100 border-l-4 border-yellow-500";
+                  } else {
+                    return "bg-blue-100 border-l-4 border-blue-500";
+                  }
+                })()
+              }`}>
                 <div className="flex items-center gap-2">
-                  <div
-                    className={`w-3 h-3 rounded-full ${
-                      Math.max(
+                  <div className={`w-3 h-3 rounded-full ${
+                    (() => {
+                      const maxWaterLevel = Math.max(
                         ...(predictionStore.getPredictionData()?.forecast
                           .waterlevels || [0])
-                      ) >= 3
-                        ? "bg-red-500"
-                        : "bg-green-500"
-                    }`}
-                  ></div>
+                      );
+                      const currentSensorInfo = sensorInfo.find(
+                        (s) => s.name.toLowerCase() === sensor.toLowerCase()
+                      );
+                      
+                      if (!currentSensorInfo) return "bg-blue-500";
+                      
+                      if (maxWaterLevel >= currentSensorInfo.critical) {
+                        return "bg-red-500";
+                      } else if (maxWaterLevel >= currentSensorInfo.alert) {
+                        return "bg-yellow-500";
+                      } else {
+                        return "bg-blue-500";
+                      }
+                    })()
+                  }`}></div>
                   <h3 className="font-bold">
-                    {Math.max(
-                      ...(predictionStore.getPredictionData()?.forecast
-                        .waterlevels || [0])
-                    ) >= 3
-                      ? "Critical Water Level"
-                      : "Safe Water Level"}
+                    {(() => {
+                      const maxWaterLevel = Math.max(
+                        ...(predictionStore.getPredictionData()?.forecast
+                          .waterlevels || [0])
+                      );
+                      const currentSensorInfo = sensorInfo.find(
+                        (s) => s.name.toLowerCase() === sensor.toLowerCase()
+                      );
+                      
+                      if (!currentSensorInfo) return "Water Level Status";
+                      
+                      if (maxWaterLevel >= currentSensorInfo.critical) {
+                        return "Critical Water Level";
+                      } else if (maxWaterLevel >= currentSensorInfo.alert) {
+                        return "Alert Water Level";
+                      } else {
+                        return "Safe Water Level";
+                      }
+                    })()}
                   </h3>
                 </div>
                 <p className="mt-1 text-sm">
-                  {Math.max(
-                    ...(predictionStore.getPredictionData()?.forecast
-                      .waterlevels || [0])
-                  ) >= 3
-                    ? "Predicted water levels exceed the critical threshold of 3 meters."
-                    : "Predicted water levels are below the critical threshold of 3 meters."}
+                  {(() => {
+                    const maxWaterLevel = Math.max(
+                      ...(predictionStore.getPredictionData()?.forecast
+                        .waterlevels || [0])
+                    );
+                    const currentSensorInfo = sensorInfo.find(
+                      (s) => s.name.toLowerCase() === sensor.toLowerCase()
+                    );
+                    
+                    if (!currentSensorInfo) return "Unable to determine threshold for this sensor.";
+                    
+                    if (maxWaterLevel >= currentSensorInfo.critical) {
+                      return `Predicted water levels exceed the critical threshold of ${currentSensorInfo.critical} meters.`;
+                    } else if (maxWaterLevel >= currentSensorInfo.alert) {
+                      return `Predicted water levels exceed the alert threshold of ${currentSensorInfo.alert} meters.`;
+                    } else {
+                      return `Predicted water levels are below the alert threshold of ${currentSensorInfo.alert} meters.`;
+                    }
+                  })()}
                 </p>
                 <p className="mt-1 text-sm font-medium">
                   Maximum predicted level:{" "}
@@ -290,6 +343,52 @@ export default function Home() {
                   ).toFixed(2)}{" "}
                   meters
                 </p>
+                
+                {/* Sensor threshold reference */}
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <h4 className="text-sm font-semibold mb-2 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Threshold Reference
+                  </h4>
+                  {(() => {
+                    const currentSensorInfo = sensorInfo.find(
+                      (s) => s.name.toLowerCase() === sensor.toLowerCase()
+                    );
+                    
+                    if (!currentSensorInfo) return <p className="text-xs text-gray-500">No threshold data available for this sensor.</p>;
+                    
+                    return (
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div className="flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-red-500 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
+                          <span>Critical: {currentSensorInfo.critical}m</span>
+                        </div>
+                        <div className="flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-orange-500 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span>Alarm: {currentSensorInfo.alarm}m</span>
+                        </div>
+                        <div className="flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-yellow-500 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span>Alert: {currentSensorInfo.alert}m</span>
+                        </div>
+                        <div className="flex items-center col-span-3 mt-1">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-blue-500 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span>Safe: Below {currentSensorInfo.alert}m</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
               </div>
             )}
 
