@@ -81,19 +81,26 @@ export default function Home() {
       el.className = "marker";
       el.id = val.name;
 
+      const popup = new mapboxgl.Popup({ 
+        offset: 25,
+        closeButton: false,
+        closeOnClick: false
+      }).setHTML(
+        `
+          <div style="padding: 10px; border-radius: 3em;">
+            <p style="font-weight: bold;">${val.name}</p>
+            <p id="${val.station_id}"></p>
+          </div>
+        `
+      );
+
       new mapboxgl.Marker(el)
         .setLngLat([val.longitude, val.latitude])
-        .addTo(mapStore.getMap()!)
-        .setPopup(
-          new mapboxgl.Popup({ offset: 25 }).setHTML(
-            `
-              <div style="padding: 10px; border-radius: 3em;">
-                <p style="font-weight: bold;">${val.name}</p>
-                <p id="${val.station_id}"></p>
-              </div>
-              `
-          )
-        );
+        .setPopup(popup)
+        .addTo(mapStore.getMap()!);
+      
+      // Show popup by default
+      popup.addTo(mapStore.getMap()!);
     });
     setClient(true);
   }, [mapStore]);
@@ -136,119 +143,6 @@ export default function Home() {
 
           {/* Right side - Controls and Graph */}
           <div className="w-2/5 flex flex-col gap-4 overflow-auto">
-            {/* Controls section */}
-            <div className="bg-white rounded-lg p-6 shadow-md border border-gray-100">
-              <h2 className="text-xl font-bold text-blue-600 mb-4">
-                Prediction Controls
-              </h2>
-              <div className="grid grid-cols-3 gap-6">
-                {/* Prediction date and time */}
-                <div className="flex flex-col gap-3">
-                  <p className="font-bold text-gray-700">Prediction Time</p>
-                  <div className="flex flex-col gap-2">
-                    <label
-                      htmlFor="predictionDate"
-                      className="text-sm text-gray-600"
-                    >
-                      Date
-                    </label>
-                    <input
-                      id="predictionDate"
-                      type="date"
-                      className="p-2.5 border border-gray-300 rounded-md hover:cursor-pointer focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all"
-                      min={"2020-06-1"}
-                      max={"2024-12-11"}
-                      defaultValue={inputDate}
-                      onChange={(e) => {
-                        console.log(e.currentTarget.value);
-                        setInputDate(e.currentTarget.value);
-                      }}
-                    />
-                    <label
-                      htmlFor="predictionTime"
-                      className="text-sm text-gray-600"
-                    >
-                      Time
-                    </label>
-                    <input
-                      id="predictionTime"
-                      className="p-2.5 border border-gray-300 rounded-md hover:cursor-pointer focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all"
-                      type="time"
-                      step={3600}
-                      defaultValue={inputTime}
-                      onChange={(e) => {
-                        console.log(e.currentTarget.value);
-                        let hour = e.currentTarget.value.split(":")[0];
-                        setInputTime(hour);
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Station selector */}
-                <div className="flex flex-col gap-3">
-                  <h2 className="font-bold text-gray-700">Station</h2>
-                  <div className="bg-gray-50 p-3 rounded-md border border-gray-200 flex flex-col gap-2">
-                    {["buhi", "sipocot", "bato", "ombao"].map((val) => {
-                      return (
-                        <div
-                          className="flex items-center gap-2 hover:bg-gray-100 p-1.5 rounded-md transition-colors"
-                          key={val}
-                        >
-                          <input
-                            type="radio"
-                            id={val}
-                            className="w-4 h-4 accent-blue-500"
-                            checked={sensor === val}
-                            onChange={() => {
-                              setSensor(val);
-                            }}
-                          />
-                          <label
-                            htmlFor={val}
-                            className="cursor-pointer w-full"
-                          >
-                            {val.charAt(0).toUpperCase() + val.slice(1)}
-                          </label>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Model selector */}
-                <div className="flex flex-col gap-3">
-                  <h2 className="font-bold text-gray-700">ML Model</h2>
-                  <div className="bg-gray-50 p-3 rounded-md border border-gray-200 flex flex-col gap-2">
-                    {["svr", "rfr", "lstm"].map((val) => {
-                      return (
-                        <div
-                          className="flex items-center gap-2 hover:bg-gray-100 p-1.5 rounded-md transition-colors"
-                          key={val}
-                        >
-                          <input
-                            type="radio"
-                            id={val}
-                            className="w-4 h-4 accent-blue-500"
-                            checked={model === val}
-                            onChange={() => {
-                              setModel(val);
-                            }}
-                          />
-                          <label
-                            htmlFor={val}
-                            className="cursor-pointer w-full"
-                          >
-                            {val.toUpperCase()}
-                          </label>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-
             {/* Water Level Status Indicator */}
             {predictionStore.getPredictionData() && (
               <div className={`rounded-lg p-4 ${
@@ -273,27 +167,6 @@ export default function Home() {
                 })()
               }`}>
                 <div className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${
-                    (() => {
-                      const maxWaterLevel = Math.max(
-                        ...(predictionStore.getPredictionData()?.forecast
-                          .waterlevels || [0])
-                      );
-                      const currentSensorInfo = sensorInfo.find(
-                        (s) => s.name.toLowerCase() === sensor.toLowerCase()
-                      );
-                      
-                      if (!currentSensorInfo) return "bg-blue-500";
-                      
-                      if (maxWaterLevel >= currentSensorInfo.critical) {
-                        return "bg-red-500";
-                      } else if (maxWaterLevel >= currentSensorInfo.alert) {
-                        return "bg-yellow-500";
-                      } else {
-                        return "bg-blue-500";
-                      }
-                    })()
-                  }`}></div>
                   <h3 className="font-bold">
                     {(() => {
                       const maxWaterLevel = Math.max(
@@ -307,11 +180,11 @@ export default function Home() {
                       if (!currentSensorInfo) return "Water Level Status";
                       
                       if (maxWaterLevel >= currentSensorInfo.critical) {
-                        return "Critical Water Level";
+                        return `⚠️ Critical Water Level at ${currentSensorInfo.name} Station ⚠️`;
                       } else if (maxWaterLevel >= currentSensorInfo.alert) {
-                        return "Alert Water Level";
+                        return `⚠️ Alert Water Level at ${currentSensorInfo.name} Station ⚠️`;
                       } else {
-                        return "Safe Water Level";
+                        return `✅ Safe Water Level at ${currentSensorInfo.name} Station ✅`;
                       }
                     })()}
                   </h3>
@@ -395,17 +268,82 @@ export default function Home() {
             )}
 
             {/* Graph section */}
-            <div className="rounded-lg p-4 bg-white flex-1 shadow-sm">
+            <div className="rounded-lg p-4 bg-white flex-1 shadow-sm overflow-hidden flex flex-col">
               <div className="text-xl flex justify-between mb-2">
-                <span className="font-bold">
-                  {sensor.charAt(0).toUpperCase() + sensor.slice(1)}
-                </span>
-                <span className="text-sm font-medium bg-blue-200 p-2 rounded-md text-blue-600">
-                  Model: {model.toUpperCase()}
-                </span>
+                <div className="flex flex-col">
+                  <label className="text-sm text-gray-600 mb-1">Station</label>
+                  <div className="relative flex items-center">
+                    <select
+                      className="font-bold bg-transparent appearance-none cursor-pointer pr-6 focus:outline-none border border-gray-300 rounded-md py-2 px-4 text-gray-800 hover:border-blue-500 transition-colors"
+                      value={sensor}
+                      onChange={(e) => setSensor(e.target.value)}
+                    >
+                      {["buhi", "sipocot", "bato", "ombao"].map((val) => (
+                        <option key={val} value={val}>
+                          {val.charAt(0).toUpperCase() + val.slice(1)}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute right-0 flex items-center px-2 text-gray-700">
+                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-sm text-gray-600 mb-1">Model</label>
+                  <div className="relative flex items-center">
+                    <select
+                      className="text-sm font-medium bg-blue-200 p-2 rounded-md text-blue-600 appearance-none cursor-pointer pr-6 focus:outline-none"
+                      value={model}
+                      onChange={(e) => setModel(e.target.value)}
+                    >
+                      {["svr", "rfr", "lstm"].map((val) => (
+                        <option key={val} value={val}>
+                          {val.toUpperCase()}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute right-0 flex items-center px-2 text-blue-600">
+                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div>
-                <div className="mb-4 bg-gray-50 p-3 rounded-md border border-gray-200">
+              
+              {/* Horizontal prediction controls */}
+              <div className="mb-4 bg-gray-50 p-3 rounded-md border border-gray-200 flex-shrink-0">
+                  <h4 className="text-sm font-semibold text-gray-700 mr-4 pb-2">Forecast Controls</h4>
+                <div className="flex items-center">
+                  <div className="flex flex-1 gap-4">
+                    <div className="flex-1">
+                      <label className="block text-xs text-gray-600 mb-1">Forecast Date</label>
+                      <input
+                        type="date"
+                        value={inputDate}
+                        onChange={(e) => setInputDate(e.target.value)}
+                        className="w-full p-2 border border-gray-300 rounded text-sm"
+                      />
+                    </div>
+                    
+                    <div className="flex-1">
+                      <label className="block text-xs text-gray-600 mb-1">Start Time</label>
+                      <input
+                        type="time"
+                        value={inputTime}
+                        onChange={(e) => setInputTime(e.target.value)}
+                        className="w-full p-2 border border-gray-300 rounded text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex-1 overflow-hidden flex flex-col">
+                <div className="mb-4 bg-gray-50 p-3 rounded-md border border-gray-200 flex-shrink-0">
                   <h4 className="text-sm font-semibold text-gray-700 mb-1">
                     Forecast Period
                   </h4>
@@ -447,7 +385,11 @@ export default function Home() {
                     </span>
                   </p>
                 </div>
-                <D3Component />
+                <div className="flex-1 overflow-hidden">
+                  {sensorInfo.find(val => val.name.toLowerCase() === sensor) && 
+                    <D3Component sensorInfo={sensorInfo.find(val => val.name.toLowerCase() === sensor)!} />
+                  }
+                </div>
               </div>
             </div>
           </div>
