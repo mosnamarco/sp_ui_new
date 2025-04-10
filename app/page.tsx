@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Info } from "lucide-react";
 import MapBox from "@/components/mapbox";
 import D3Component from "@/components/d3chart";
@@ -18,7 +18,7 @@ export default function Home() {
   const [model, setModel] = useState("svr");
   const [inputDate, setInputDate] = useState("2024-06-14");
   const [inputTime, setInputTime] = useState("12:00");
-  const [sensorInfo, _] = useState([
+  const [sensorInfo] = useState([
     {
       station_id: 630365,
       name: "Buhi",
@@ -85,9 +85,8 @@ export default function Home() {
       new mapboxgl.Marker(el)
         .setLngLat([val.longitude, val.latitude])
         .addTo(mapStore.getMap()!);
-
     });
-  }, [mapStore]);
+  }, [mapStore, sensorInfo]);
 
   useEffect(() => {
     // Skip if map is not available
@@ -104,21 +103,25 @@ export default function Home() {
           z-index: 90;
           border-radius: 8px;
           box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-          ${selectionStore.status === "safe" 
-            ? "background-color: #e6f7e6; border: 2px solid #4caf50;" 
-            : selectionStore.status === "alert" 
-              ? "background-color: #fff8e6; border: 2px solid #ff9800;" 
-              : "background-color: #ffebee; border: 2px solid #f44336;"}
+          ${
+            selectionStore.status === "safe"
+              ? "background-color: #e6f7e6; border: 2px solid #4caf50;"
+              : selectionStore.status === "alert"
+              ? "background-color: #fff8e6; border: 2px solid #ff9800;"
+              : "background-color: #ffebee; border: 2px solid #f44336;"
+          }
         ">
           <p style="
             font-weight: bold; 
             text-transform: capitalize;
             text-align: center;
-            ${selectionStore.status === "safe" 
-              ? "color: #2e7d32;" 
-              : selectionStore.status === "alert" 
-                ? "color: #e65100;" 
-                : "color: #b71c1c;"}
+            ${
+              selectionStore.status === "safe"
+                ? "color: #2e7d32;"
+                : selectionStore.status === "alert"
+                ? "color: #e65100;"
+                : "color: #b71c1c;"
+            }
           ">${selectionStore.station}</p>
           
           <div style="
@@ -127,17 +130,21 @@ export default function Home() {
             border-radius: 4px;
             text-align: center;
             font-weight: bold;
-            ${selectionStore.status === "safe" 
-              ? "background-color: #c8e6c9; color: #2e7d32;" 
-              : selectionStore.status === "alert" 
-                ? "background-color: #ffe0b2; color: #e65100;" 
-                : "background-color: #ffcdd2; color: #b71c1c;"}
+            ${
+              selectionStore.status === "safe"
+                ? "background-color: #c8e6c9; color: #2e7d32;"
+                : selectionStore.status === "alert"
+                ? "background-color: #ffe0b2; color: #e65100;"
+                : "background-color: #ffcdd2; color: #b71c1c;"
+            }
           ">
-            ${selectionStore.status === "safe" 
-              ? "✅ Safe" 
-              : selectionStore.status === "alert" 
-                ? "⚠️ Alert" 
-                : "🚨 Critical"}
+            ${
+              selectionStore.status === "safe"
+                ? "✅ Safe"
+                : selectionStore.status === "alert"
+                ? "⚠️ Alert"
+                : "🚨 Critical"
+            }
           </div>
           
           <p style="
@@ -153,10 +160,10 @@ export default function Home() {
         </div>
       `;
     }
-    
+
     // Force mapbox to refresh/redraw
     mapStore.getMap()?.resize();
-  }, [selectionStore, mapStore])
+  }, [selectionStore, mapStore]);
 
   useEffect(() => {
     getPrediction(inputDate, inputTime, model, sensor).then((res) => {
@@ -170,15 +177,14 @@ export default function Home() {
         (s) => s.name.toLowerCase() === sensor.toLowerCase()
       );
 
-      if (!currentSensorInfo)
-        return;
+      if (!currentSensorInfo) return;
 
       if (maxWaterLevel >= currentSensorInfo.critical) {
-        selectionStore.setStatus("critical")
+        selectionStore.setStatus("critical");
       } else if (maxWaterLevel >= currentSensorInfo.alert) {
-        selectionStore.setStatus("alert")
+        selectionStore.setStatus("alert");
       } else {
-        selectionStore.setStatus("safe")
+        selectionStore.setStatus("safe");
       }
     });
   }, [inputDate, inputTime, model, sensor]);
@@ -187,7 +193,9 @@ export default function Home() {
     <div className="flex flex-col h-screen bg-slate-100">
       <nav className="p-2 w-full border border-b-gray-300 bg-white">
         <div className="max-w-screen-2xl m-auto flex justify-between items-center">
-          <span className="font-bold text-blue-500 text-xl">FlowCast (Proof of Concept)</span>
+          <span className="font-bold text-blue-500 text-xl">
+            FlowCast (Proof of Concept)
+          </span>
           <Info className="text-blue-500" />
         </div>
       </nav>
@@ -476,7 +484,7 @@ export default function Home() {
                         type="date"
                         value={inputDate}
                         onChange={(e) => {
-                          console.log('Date changed:', e.target.value);
+                          console.log("Date changed:", e.target.value);
                           setInputDate(e.target.value);
                         }}
                         className="w-full p-2 border border-gray-300 rounded text-sm"
@@ -492,8 +500,9 @@ export default function Home() {
                         type="time"
                         value={inputTime}
                         onChange={(e) => {
-                          e.target.value = e.target.value.slice(0, 2) + ":" + "00";
-                          console.log('Time changed:', e.target.value);
+                          e.target.value =
+                            e.target.value.slice(0, 2) + ":" + "00";
+                          console.log("Time changed:", e.target.value);
                           setInputTime(e.target.value);
                         }}
                         className="w-full p-2 border border-gray-300 rounded text-sm"
