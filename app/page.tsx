@@ -195,14 +195,14 @@ export default function Home() {
       <div className="w-full max-w-screen-2xl mx-auto flex flex-col gap-4 flex-1 px-4 py-4 overflow-hidden">
         {/* map */}
         <div className="p-2 bg-orange-200 border-l-4 border-orange-300 rounded-lg text-orange-600">
-          <h2 className="text-lg">
+          <h3 className="text-sm font-semibold">
             Note: Due to sensor limitations{" "}
             <span className="italic font-bold">(lack of real time data)</span>{" "}
             predictions{" "}
             <span className="italic underline font-bold">
               are limited to previously recorded rainfall and water level data.
             </span>
-          </h2>
+          </h3>
         </div>
 
         {/* Main content area - Map on left, controls and graph on right */}
@@ -492,6 +492,7 @@ export default function Home() {
                         type="time"
                         value={inputTime}
                         onChange={(e) => {
+                          e.target.value = e.target.value.slice(0, 2) + ":" + "00";
                           console.log('Time changed:', e.target.value);
                           setInputTime(e.target.value);
                         }}
